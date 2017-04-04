@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simple Map</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <meta charset="utf-8">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="apple-touch-startup-image" href="start.png"
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        position: absolute;
+        height: 93%;
+        width:100%;
+        float:left;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body, #main {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #favouriteBar {
+        height:7%;
+        width:100%;
+        background-color: pink;
+        position: relative;
+        top: 93%;
+        background-color: white;
+        bottom: 0;
+      }
+      .buttons{
+        background-color: #66ccff;
+        border: none;
+        color: white;
+        padding: 10px 10px;
+        text-align: center;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+      }
+      #startScreen {
+        position:absolute;
+        top:0;
+        left:0;
+        bottom:0;
+        height:100%;
+        width:100%;
+        background-color:white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="startScreen">
+      <center>
+        <img  height="50%" width ="50%" src="http://utbblogs.com/home/bradu25/public_html/wp-content/uploads/2016/03/new-google-maps-logo-vector-download.jpg" />
+      </center>
+    </div>
+
+    <div id="main">
+      <div id="map">
+      </div>
+      <div id="favouriteBar">
+        <button class="buttons" onclick="goShark()"> Sharks! </button>
+        <button class="buttons" onclick="goHome()" > Homee </button>
+        <button class="buttons" onclick="getLocation()" > Get Location! </button>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("map").style.visibility = "hidden";
+      document.getElementById("favouriteBar").style.visibility = "hidden";
+      $(function(){
+        setTimeout(function() {
+          $('#startScreen').fadeOut(150);
+        }, 350);
+      });
+      setTimeout(function(){
+        document.getElementById("map").style.visibility = "visible";
+        document.getElementById("favouriteBar").style.visibility = "visible";
+      },600)
+    </script>
+
+    <script>
+      var map;
+      var homeMarker;
+      var sharkMarker;
+
+      var startLoc = {lat: 59.3498092, lng: 18.0684758};
+
+      
+      function getLocation(){
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            var pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            map.setCenter(pos);
+            map.setZoom(18);
+          }, function() {
+            handleLocationError(true, infoWindow, map.getCenter());
+          });
+        } else {
+          // Browser doesn't support Geolocation
+          handleLocationError(false, infoWindow, map.getCenter());
+        }
+      }
+
+      function goHome(){
+        map.setCenter(homeMarker.getPosition());
+      }
+      function goShark(){
+        map.setCenter(sharkMarker.getPosition());
+      }
+
+
+      function CenterControl(controlDiv, map) { //Center
+      // Set CSS for the control border.
+        var controlUI = document.createElement('div');
+        controlUI.style.backgroundColor = '#fff';
+
+        controlUI.title = 'Click to recenter the map';
+        controlDiv.appendChild(controlUI);
+
+        // Set CSS for the control interior.
+        var controlText = document.createElement('div');
+        controlText.style.color = 'rgb(25,25,25)';
+        controlText.style.fontSize = '16px';
+        controlText.style.lineHeight = '38px';
+        controlText.style.paddingLeft = '5px';
+        controlText.style.paddingRight = '5px';
+        controlText.innerHTML = 'Center Map';
+        controlUI.appendChild(controlText);
+
+        // Setup the click event listeners: simply set the map to Chicago.
+        controlUI.addEventListener('click', function() {
+          map.setCenter(startLoc);
+        });
+      }
+      function DirectionalNavLeft(controlDiv, map) {
+      // Set CSS for the control border.
+        var controlUI = document.createElement('div');
+        controlUI.style.backgroundColor = '#fff';
+        controlUI.title = 'Click to move left';
+        controlDiv.appendChild(controlUI);
+
+        // Set CSS for the control interior.
+        var controlText = document.createElement('div');
+        controlText.style.color = 'rgb(25,25,25)';
+        controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+        controlText.style.fontSize = '16px';
+        controlText.style.lineHeight = '38px';
+        controlText.style.paddingLeft = '5px';
+        controlText.style.paddingRight = '5px';
+        controlText.innerHTML = '<';
+        controlUI.appendChild(controlText);
+
+        // Setup the click event listeners: simply set the map to Chicago.
+        controlUI.addEventListener('click', function() {
+          var currentLat;
+          var currentLng;
+          if(map.getZoom() > 10){
+            currentLat = map.getCenter().lat();
+            currentLng = map.getCenter().lng() - 0.002;
+          }else{
+            currentLat = map.getCenter().lat();
+            currentLng = map.getCenter().lng() - 0.2;
+          }
+          map.setCenter({lat: currentLat, lng: currentLng});
+        });
+      }
+
+      function DirectionalNavUp(controlDiv, map) {
+      // Set CSS for the control border.
+        var controlUI = document.createElement('div');
+        controlUI.style.backgroundColor = '#fff';
+        controlUI.title = 'Click to move up';
+        controlDiv.appendChild(controlUI);
+
+        // Set CSS for the control interior.
+        var controlText = document.createElement('div');
+        controlText.style.color = 'rgb(25,25,25)';
+        controlText.style.fontSize = '16px';
+        controlText.style.lineHeight = '38px';
+        controlText.style.paddingLeft = '10px';
+        controlText.style.paddingRight = '10px';
+        controlText.innerHTML = '/\\';
+        controlUI.appendChild(controlText);
+
+        // Setup the click event listeners: simply set the map to Chicago.
+        controlUI.addEventListener('click', function() {
+          var currentLat;
+          var currentLng;
+          if(map.getZoom() > 10){
+            currentLat = map.getCenter().lat() + 0.001;
+            currentLng = map.getCenter().lng();
+          }else{
+            currentLat = map.getCenter().lat() + 0.3;
+            currentLng = map.getCenter().lng();
+          }
+          map.setCenter({lat: currentLat, lng: currentLng});
+          });
+        }
+
+        function DirectionalNavRight(controlDiv, map) {
+      // Set CSS for the control border.
+          var controlUI = document.createElement('div');
+          controlUI.style.backgroundColor = '#fff';
+
+          controlUI.title = 'Click to move right';
+          controlDiv.appendChild(controlUI);
+
+          // Set CSS for the control interior.
+          var controlText = document.createElement('div');
+          controlText.style.color = 'rgb(25,25,25)';
+          controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+          controlText.style.fontSize = '16px';
+          controlText.style.lineHeight = '38px';
+          controlText.style.paddingLeft = '5px';
+          controlText.style.paddingRight = '5px';
+          controlText.innerHTML = '>';
+          controlUI.appendChild(controlText);
+
+          // Setup the click event listeners: simply set the map to Chicago.
+          controlUI.addEventListener('click', function() {
+            var currentLat;
+            var currentLng;
+            if(map.getZoom() > 10){
+              currentLat = map.getCenter().lat();
+              currentLng = map.getCenter().lng() + 0.002;
+            }else{
+              currentLat = map.getCenter().lat();
+              currentLng = map.getCenter().lng() + 0.2;
+            }
+            map.setCenter({lat: currentLat, lng: currentLng});
+          });
+        }
+
+        function DirectionalNavDown(controlDiv, map) {
+      // Set CSS for the control border.
+          var controlUI = document.createElement('div');
+          controlUI.style.backgroundColor = '#fff';
+          controlUI.title = 'Click to move down';
+          controlDiv.appendChild(controlUI);
+
+          // Set CSS for the control interior.
+          var controlText = document.createElement('div');
+          controlText.style.color = 'rgb(25,25,25)';
+          controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+          controlText.style.fontSize = '16px';
+          controlText.style.lineHeight = '38px';
+          controlText.style.paddingLeft = '5px';
+          controlText.style.paddingRight = '5px';
+          controlText.innerHTML = '\\/';
+          controlUI.appendChild(controlText);
+
+          // Setup the click event listeners: simply set the map to Chicago.
+          controlUI.addEventListener('click', function() {
+            var currentLat;
+            var currentLng;
+            if(map.getZoom() > 10){
+              currentLat = map.getCenter().lat() - 0.001;
+              currentLng = map.getCenter().lng();
+            }else{
+              currentLat = map.getCenter().lat() - 0.3;
+              currentLng = map.getCenter().lng();
+            }
+            map.setCenter({lat: currentLat, lng: currentLng});
+          });
+        }
+
+
+        function ZoomIn(controlDiv, map) {
+          // Set CSS for the control border.
+          var controlUI = document.createElement('div');
+          controlUI.style.backgroundColor = '#fff';
+          controlUI.height = '100px';
+          controlUI.width = '100px';
+          controlUI.title = 'Click to Zoom in';
+          controlDiv.appendChild(controlUI);
+
+          // Set CSS for the control interior.
+          var controlText = document.createElement('div');
+            controlText.style.color = 'rgb(25,25,25)';
+            controlText.style.fontSize = '16px';
+            controlText.style.lineHeight = '38px';
+            controlText.style.paddingLeft = '5px';
+            controlText.style.paddingRight = '5px';
+
+          controlText.innerHTML = 'Zoom in';
+          controlUI.appendChild(controlText);
+
+          // Setup the click event listeners: simply set the map to Chicago.
+          controlUI.addEventListener('click', function() {
+            map.setZoom(map.getZoom() + 1);
+          });
+        }
+
+      function ZoomOut(controlDiv, map) {
+        // Set CSS for the control border.
+        var controlUI = document.createElement('div');
+        controlUI.style.backgroundColor = '#fff';
+        controlUI.height = "10px";
+        controlUI.width = "10px";
+        controlUI.title = 'Click to Zoom Out';
+        controlDiv.appendChild(controlUI);
+
+        // Set CSS for the control interior.
+        var controlText = document.createElement('div');
+        controlText.style.color = 'rgb(25,25,25)';
+        controlText.style.fontSize = '16px';
+        controlText.style.lineHeight = '38px';
+        controlText.style.paddingLeft = '5px';
+        controlText.style.paddingRight = '5px';
+
+        controlText.innerHTML = 'Zoom out';
+        controlUI.appendChild(controlText);
+
+        // Setup the click event listeners: simply set the map to Chicago.
+        controlUI.addEventListener('click', function() {
+          map.setZoom(map.getZoom() - 1);
+        });
+      }
+
+
+      function ToggleMapView(controlDiv, map) {
+        // Set CSS for the control border.
+        var controlUI = document.createElement('div');
+        controlUI.style.backgroundColor = '#fff';
+        controlUI.title = 'Click to toggle map type';
+        controlUI.position = "Fixed";
+        controlDiv.appendChild(controlUI);
+
+        // Set CSS for the control interior.
+        var controlText = document.createElement('div');
+        controlText.style.color = 'rgb(25,25,25)';
+        controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+        controlText.style.fontSize = '16px';
+        controlText.style.lineHeight = '38px';
+        controlText.style.paddingLeft = '5px';
+        controlText.style.paddingRight = '5px';
+        controlText.innerHTML = 'Toggle map ';
+        controlUI.appendChild(controlText);
+
+        // Setup the click event listeners: simply set the map to Chicago.
+        controlUI.addEventListener('click', function() {
+          if(map.getMapTypeId() == google.maps.MapTypeId.SATELLITE){
+            map.setMapTypeId('terrain');
+          } else {
+            map.setMapTypeId('satellite');
+          }
+          
+        });
+      }
+
+      function initMap() {
+          var homeLoc = {lat: 59.3698566, lng: 16.5082743};
+          var sharkLoc ={lat: -26.0082389, lng: 113.2162096};
+          map = new google.maps.Map(document.getElementById('map'), {
+          center: startLoc,
+          zoom: 18,
+          mapTypeId: 'satellite',
+          //tilt: 45,
+          gestureHandling: 'none',
+          disableDefaultUI: true
+          });
+
+          homeMarker = new google.maps.Marker({
+            position: homeLoc,
+            map: map
+
+          }); 
+          sharkMarker = new google.maps.Marker({
+            position: sharkLoc,
+            map: map
+
+          }); 
+          //directional controls (for scrolling)
+          var navLeftDiv = document.createElement('div');
+          var moveLeftControl = new DirectionalNavLeft(navLeftDiv, map);
+
+          var navUpDiv = document.createElement('div');
+          var moveUpControl = new DirectionalNavUp(navUpDiv, map);
+
+          var navRightDiv = document.createElement('div');
+          var moveRightControl = new DirectionalNavRight(navRightDiv, map);
+
+          var navDownDiv = document.createElement('div');
+          var moveDownControl = new DirectionalNavDown(navDownDiv, map);
+
+          var zoomInDiv = document.createElement('div');
+          var zoomInControl = new ZoomIn(zoomInDiv, map);
+
+          var zoomOutDiv = document.createElement('div');
+          var zoomOutControl = new ZoomOut(zoomOutDiv, map);
+
+          var toggleMapViewDiv = document.createElement('div');
+          var toggleMapViewControl = new ToggleMapView(toggleMapViewDiv, map);
+
+          zoomInDiv.index = 1;
+          map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(zoomInDiv);
+
+          zoomOutDiv.index = 2;
+          map.controls[google.maps.ControlPosition.LEFT_CENTER].push(zoomOutDiv);
+
+
+          navLeftDiv.index = 3;
+          map.controls[google.maps.ControlPosition.LEFT_CENTER].push(navLeftDiv);
+
+          navUpDiv.index = 4;
+          map.controls[google.maps.ControlPosition.TOP_CENTER].push(navUpDiv);
+
+          navRightDiv.index = 5;
+          map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(navRightDiv);
+
+          navDownDiv.index = 6;
+          map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(navDownDiv);
+
+          toggleMapViewDiv.index = 7;
+          map.controls[google.maps.ControlPosition.TOP_LEFT].push(toggleMapViewDiv);
+
+          // Create the DIV to hold the control and call the CenterControl()
+          // constructor passing in this DIV.
+          var centerControlDiv = document.createElement('div');
+          var centerControl = new CenterControl(centerControlDiv, map);
+
+          centerControlDiv.index = 8;
+          map.controls[google.maps.ControlPosition.TOP_RIGHT].push(centerControlDiv);
+        
+      }
+    </script>
+
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCletHce1QFwq6DfF7QTIdNZmDRAPAVHSk&callback=initMap"
+    async defer></script>
+    
+
+  </body>
+</html>
